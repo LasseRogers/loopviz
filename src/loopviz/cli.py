@@ -20,7 +20,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--backend", choices=("auto", "gpu", "cpu"), default="auto",
         help="auto tries the GPU and falls back to CPU",
     )
-    parser.add_argument("--bands", type=int, default=32, help="number of frequency bands")
+    parser.add_argument("--bands", type=int, default=128, help="number of frequency bands")
     parser.add_argument(
         "--block-size", type=int, choices=(1024, 2048, 4096, 8192), default=2048,
         help="FFT size, larger gives finer bass but slower response",
