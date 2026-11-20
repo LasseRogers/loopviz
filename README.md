@@ -23,12 +23,13 @@ uv sync
 uv run loopviz --mode feedback
 uv run loopviz --mode waveform --persistence 0.85
 uv run loopviz --bands 64 --block-size 8192
+uv run loopviz --palette green-glow
 uv run loopviz --backend cpu
 uv run loopviz --list-devices
 uv run loopviz --device "<name>"
 ```
 
-`Tab` next mode, `F` fullscreen, `Esc` quit.
+`Tab` next mode, `C` palette (spectrum), `F` fullscreen, `Esc` quit.
 
 ## Notes
 
@@ -39,3 +40,4 @@ uv run loopviz --device "<name>"
 - GPU feedback ping-pongs between two RGBA16F targets. 8-bit fade gets stuck above black.
 - Fullscreen uses desktop mode via `pygame.Window`. `toggle_fullscreen()` dropped the monitor to window resolution.
 - New mode: renderer in `src/loopviz/renderers/`, register in `renderers/__init__.py`.
+- Renderers can take extra keys through an optional `on_key(key)`. Palettes live in `palettes.py`.

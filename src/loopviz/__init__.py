@@ -30,7 +30,7 @@ def main() -> None:
     window = pygame.Window.from_display_module()
     fullscreen = False
     print(f"Backend: {display.name}")
-    print("Tab: next mode, F: fullscreen, Esc: quit")
+    print("Tab: next mode, C: palette, F: fullscreen, Esc: quit")
 
     spectrum = Spectrum(SAMPLE_RATE, args.block_size, args.bands)
     smoother = Smoother(args.bands)
@@ -62,6 +62,8 @@ def main() -> None:
                             window.set_fullscreen(desktop=True)
                         else:
                             window.set_windowed()
+                    elif on_key := getattr(renderers[modes[mode]], "on_key", None):
+                        on_key(event.key)
 
                 samples = capture.latest
                 display.present(renderers[modes[mode]], samples, smoother(spectrum(samples)))

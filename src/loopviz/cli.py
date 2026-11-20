@@ -1,11 +1,16 @@
 import argparse
 
+from loopviz.palettes import PALETTES
 from loopviz.renderers import RENDERERS
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="loopviz", description="Visualize system audio.")
     parser.add_argument("--mode", choices=RENDERERS, default="spectrum")
+    parser.add_argument(
+        "--palette", choices=[p.name for p in PALETTES], default=PALETTES[0].name,
+        help="spectrum colors, C cycles while running",
+    )
     parser.add_argument(
         "--backend", choices=("auto", "gpu", "cpu"), default="auto",
         help="auto tries the GPU and falls back to CPU",
