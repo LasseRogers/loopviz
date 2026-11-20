@@ -57,6 +57,12 @@ class GpuDisplay:
 
     def present(self, renderer, samples: np.ndarray, levels: np.ndarray) -> None:
         size = pygame.display.get_window_size()
+
+        if getattr(renderer, "gl", False):
+            renderer.render(self.ctx, size, samples, levels)
+            pygame.display.flip()
+            return
+
         if self.surface is None or self.surface.get_size() != size:
             self.surface = pygame.Surface(size)
             if self.texture:
@@ -65,6 +71,7 @@ class GpuDisplay:
 
         renderer.draw(self.surface, samples, levels)
         self.texture.write(pygame.image.tobytes(self.surface, "RGB"))
+        self.ctx.screen.use()
         self.ctx.viewport = (0, 0, *size)
         self.texture.use()
         self.quad.render(moderngl.TRIANGLE_STRIP)

@@ -21,16 +21,17 @@ def main() -> None:
     mic = find_input(args.device)
     print(f"Capturing from: {mic.name}")
 
-    spectrum = Spectrum(SAMPLE_RATE, BLOCK_SIZE, args.bands)
-    smoother = Smoother(args.bands)
-    renderers = {name: make(args) for name, make in RENDERERS.items()}
-    modes = list(renderers)
-    mode = modes.index(args.mode)
-
     pygame.init()
     display = open_display(args.backend, WINDOW_SIZE)
     print(f"Backend: {display.name}")
     print("Tab: next mode, F: fullscreen, Esc: quit")
+
+    spectrum = Spectrum(SAMPLE_RATE, BLOCK_SIZE, args.bands)
+    smoother = Smoother(args.bands)
+    gpu = display.name == "gpu"
+    renderers = {name: make(args, gpu) for name, make in RENDERERS.items()}
+    modes = list(renderers)
+    mode = modes.index(args.mode)
     pygame.display.set_caption(f"loopviz - {modes[mode]}")
     clock = pygame.time.Clock()
 
