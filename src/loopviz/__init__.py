@@ -12,7 +12,6 @@ from loopviz.display import open_display
 from loopviz.renderers import RENDERERS
 
 SAMPLE_RATE = 44100
-BLOCK_SIZE = 2048
 WINDOW_SIZE = (960, 480)
 
 
@@ -33,7 +32,7 @@ def main() -> None:
     print(f"Backend: {display.name}")
     print("Tab: next mode, F: fullscreen, Esc: quit")
 
-    spectrum = Spectrum(SAMPLE_RATE, BLOCK_SIZE, args.bands)
+    spectrum = Spectrum(SAMPLE_RATE, args.block_size, args.bands)
     smoother = Smoother(args.bands)
     gpu = display.name == "gpu"
     renderers = {name: make(args, gpu) for name, make in RENDERERS.items()}
@@ -43,7 +42,7 @@ def main() -> None:
     clock = pygame.time.Clock()
 
     try:
-        with Capture(mic, SAMPLE_RATE, BLOCK_SIZE) as capture:
+        with Capture(mic, SAMPLE_RATE, args.block_size) as capture:
             while True:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:

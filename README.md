@@ -22,6 +22,7 @@ uv sync
 ```bash
 uv run loopviz --mode feedback
 uv run loopviz --mode waveform --persistence 0.85
+uv run loopviz --bands 64 --block-size 8192
 uv run loopviz --backend cpu
 uv run loopviz --list-devices
 uv run loopviz --device "<name>"
@@ -33,7 +34,7 @@ uv run loopviz --device "<name>"
 
 - Capture on a background thread, 512-sample chunks into a 2048-sample window. Keeps latency at about one chunk regardless of frame rate. Reading from the render loop drifted out of sync.
 - Hann window, FFT, log-spaced bands (30 Hz to 16 kHz), dB mapped from -70..-10 to 0..1, attack/release smoothing.
-- Bands below ~330 Hz get narrower than one FFT bin (21.5 Hz) at high band counts, so low bars repeat. Larger block size would fix it at the cost of time resolution.
+- Bands below ~330 Hz get narrower than one FFT bin (21.5 Hz) at high band counts, so low bars repeat. `--block-size 4096/8192` fixes it at the cost of time resolution (93/186 ms window).
 - GPU backend: OpenGL 3.3 core, forward-compatible for macOS. Non-GL renderers draw to an off-screen surface that's uploaded as a texture. `auto` falls back to CPU.
 - GPU feedback ping-pongs between two RGBA16F targets. 8-bit fade gets stuck above black.
 - Fullscreen uses desktop mode via `pygame.Window`. `toggle_fullscreen()` dropped the monitor to window resolution.
