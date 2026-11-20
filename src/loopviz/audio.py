@@ -47,3 +47,7 @@ class Capture:
                 chunk = rec.record(numframes=self._block).mean(axis=1)
                 # Swapping in a new array keeps reads lock-free
                 self.latest = np.concatenate((self.latest, chunk))[-self._size:]
+
+
+def list_inputs() -> list[str]:
+    return [mic.name for mic in sc.all_microphones(include_loopback=True)]

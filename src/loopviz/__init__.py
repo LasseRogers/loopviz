@@ -1,25 +1,31 @@
 import pygame
 
 from loopviz.analysis import Smoother, Spectrum
-from loopviz.audio import Capture, find_input
+from loopviz.audio import Capture, find_input, list_inputs
+from loopviz.cli import parse_args
+from loopviz.renderers import RENDERERS
 
 SAMPLE_RATE = 44100
 BLOCK_SIZE = 2048
-FPS = 60
-BANDS = 32
-BAR_COLOR = (90, 200, 160)
 
 
 def main() -> None:
-    mic = find_input()
+    args = parse_args()
+
+    if args.list_devices:
+        print("\n".join(list_inputs()))
+        return
+
+    mic = find_input(args.device)
     print(f"Capturing from: {mic.name}")
 
-    spectrum = Spectrum(SAMPLE_RATE, BLOCK_SIZE, BANDS)
-    smoother = Smoother(BANDS)
+    spectrum = Spectrum(SAMPLE_RATE, BLOCK_SIZE, args.bands)
+    smoother = Smoother(args.bands)
+    renderer = RENDERERS[args.mode]()
 
     pygame.init()
     screen = pygame.display.set_mode((960, 480), pygame.RESIZABLE)
-    pygame.display.set_caption("loopviz")
+    pygame.display.set_caption(f"loopviz - {args.mode}")
     clock = pygame.time.Clock()
 
     try:
@@ -31,18 +37,9 @@ def main() -> None:
                     ):
                         return
 
-                levels = smoother(spectrum(capture.latest))
-
-                width, height = screen.get_size()
-                bar_width = width / BANDS
-                screen.fill((0, 0, 0))
-                for i, level in enumerate(levels):
-                    bar_height = level * height
-                    pygame.draw.rect(
-                        screen, BAR_COLOR,
-                        (i * bar_width + 1, height - bar_height, bar_width - 2, bar_height),
-                    )
+                samples = capture.latest
+                renderer.draw(screen, samples, smoother(spectrum(samples)))
                 pygame.display.flip()
-                clock.tick(FPS)
+                clock.tick(args.fps)
     finally:
         pygame.quit()
