@@ -1,0 +1,21 @@
+[project]
+name = "loopviz"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Lasse Rogers Nielsen", email = "lasr@kb.dk" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.5.5",
+    "pygame-ce>=2.5.8",
+    "soundcard>=0.4.6",
+]
+
+[project.scripts]
+loopviz = "loopviz:main"
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
