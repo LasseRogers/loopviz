@@ -1,8 +1,11 @@
 import sys
 import threading
+from collections import deque
 
 import numpy as np
 import soundcard as sc
+
+SAMPLE_RATE = 44100
 
 
 def find_input(name: str | None = None):
@@ -21,13 +24,16 @@ def find_input(name: str | None = None):
 class Capture:
     """Records on a background thread so the render loop never falls behind the audio."""
 
-    def __init__(self, mic, sample_rate: int, size: int, block: int = 512):
+    def __init__(self, mic, sample_rate: int, size: int, block: int = 512, backlog: int = 64):
         self._mic = mic
         self._sample_rate = sample_rate
         self._size = size
         self._block = block
         self._running = False
         self.latest = np.zeros(size, dtype=np.float32)
+        # Every window in order, one per block, for consumers that can't skip hops.
+        # Bounded so a stalled consumer loses the oldest instead of growing forever
+        self._windows: deque[np.ndarray] = deque(maxlen=backlog)
 
     def __enter__(self):
         self._running = True
@@ -39,6 +45,14 @@ class Capture:
         self._running = False
         self._thread.join()
 
+    def drain(self) -> list[np.ndarray]:
+        """Windows completed since the last call, oldest first."""
+        # popleft is atomic and only this side removes, so no lock is needed
+        windows = []
+        while self._windows:
+            windows.append(self._windows.popleft())
+        return windows
+
     def _run(self) -> None:
         with self._mic.recorder(
             samplerate=self._sample_rate, channels=2, blocksize=self._block
@@ -46,7 +60,9 @@ class Capture:
             while self._running:
                 chunk = rec.record(numframes=self._block).mean(axis=1)
                 # Swapping in a new array keeps reads lock-free
-                self.latest = np.concatenate((self.latest, chunk))[-self._size:]
+                window = np.concatenate((self.latest, chunk))[-self._size:]
+                self.latest = window
+                self._windows.append(window)
 
 
 def list_inputs() -> list[str]:
