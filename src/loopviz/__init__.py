@@ -6,12 +6,11 @@ os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
 import pygame
 
 from loopviz.analysis import Smoother, Spectrum
-from loopviz.audio import Capture, find_input, list_inputs
+from loopviz.audio import SAMPLE_RATE, Capture, find_input, list_inputs
 from loopviz.cli import parse_args
 from loopviz.display import open_display
 from loopviz.renderers import RENDERERS
 
-SAMPLE_RATE = 44100
 WINDOW_SIZE = (960, 480)
 
 
@@ -65,8 +64,15 @@ def main() -> None:
                     elif on_key := getattr(renderers[modes[mode]], "on_key", None):
                         on_key(event.key)
 
+                renderer = renderers[modes[mode]]
+                # Drained every frame, even when unused, so switching to a renderer
+                # that feeds on every window never starts with a stale backlog
+                windows = capture.drain()
+                if feed := getattr(renderer, "feed", None):
+                    feed(windows)
+
                 samples = capture.latest
-                display.present(renderers[modes[mode]], samples, smoother(spectrum(samples)))
+                display.present(renderer, samples, smoother(spectrum(samples)))
                 clock.tick(args.fps)
     finally:
         pygame.quit()
