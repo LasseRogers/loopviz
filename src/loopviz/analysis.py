@@ -36,3 +36,28 @@ class Smoother:
         rate = np.where(target > self.state, self.attack, self.release)
         self.state += (target - self.state) * rate
         return self.state
+
+
+class BeatDetector:
+    """Flags onsets where energy jumps above its recent average."""
+
+    def __init__(self, history: int = 43, jump: float = 0.08,
+                 floor: float = 0.2, cooldown: int = 10):
+        self.history = np.zeros(history)
+        self.jump = jump
+        self.floor = floor
+        self.cooldown = cooldown
+        self.wait = 0
+
+    def __call__(self, energy: float) -> bool:
+        average = self.history.mean()
+        self.history = np.roll(self.history, 1)
+        self.history[0] = energy
+        self.wait = max(0, self.wait - 1)
+
+        # Levels are in dB, so a fixed difference is a fixed loudness jump
+        # Floor ignores noise when the music is quiet or paused
+        if self.wait or energy < self.floor or energy - average < self.jump:
+            return False
+        self.wait = self.cooldown
+        return True

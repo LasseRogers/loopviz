@@ -24,12 +24,13 @@ uv run loopviz --mode feedback
 uv run loopviz --mode waveform --persistence 0.85
 uv run loopviz --bands 64 --block-size 8192
 uv run loopviz --palette green-glow
+uv run loopviz --mode feedback --preset beat
 uv run loopviz --backend cpu
 uv run loopviz --list-devices
 uv run loopviz --device "<name>"
 ```
 
-`Tab` next mode, `C` palette (spectrum, waveform), `F` fullscreen, `Esc` quit.
+`Tab` next mode, `C` palette (spectrum, waveform), `P` preset (feedback), `F` fullscreen, `Esc` quit.
 
 ## Notes
 
@@ -38,6 +39,7 @@ uv run loopviz --device "<name>"
 - Bands below ~330 Hz get narrower than one FFT bin (21.5 Hz) at high band counts, so low bars repeat. `--block-size 4096/8192` fixes it at the cost of time resolution (93/186 ms window).
 - GPU backend: OpenGL 3.3 core, forward-compatible for macOS. Non-GL renderers draw to an off-screen surface that's uploaded as a texture. `auto` falls back to CPU.
 - GPU feedback ping-pongs between two RGBA16F targets. 8-bit fade gets stuck above black.
+- Feedback presets: `tunnel` (continuous) and `beat` (kick onsets swell the zoom, flash the ring, flip spin every 16 beats). Beats are a fixed jump over the ~0.7 s bass average. Levels are already dB, so a ratio threshold barely triggered.
 - Fullscreen uses desktop mode via `pygame.Window`. `toggle_fullscreen()` dropped the monitor to window resolution.
 - New mode: renderer in `src/loopviz/renderers/`, register in `renderers/__init__.py`.
 - Renderers can take extra keys through an optional `on_key(key)`. Palettes live in `palettes.py`.

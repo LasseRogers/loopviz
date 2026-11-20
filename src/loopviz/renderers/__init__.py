@@ -8,5 +8,5 @@ from loopviz.renderers.waveform import WaveformRenderer
 RENDERERS = {
     "spectrum": lambda args, gpu: SpectrumRenderer(palette=args.palette),
     "waveform": lambda args, gpu: WaveformRenderer(palette=args.palette, persistence=args.persistence),
-    "feedback": lambda args, gpu: FeedbackGLRenderer() if gpu else FeedbackRenderer(),
+    "feedback": lambda args, gpu: FeedbackGLRenderer(preset=args.preset) if gpu else FeedbackRenderer(),
 }

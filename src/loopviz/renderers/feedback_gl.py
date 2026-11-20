@@ -1,7 +1,11 @@
 import time
+from dataclasses import dataclass
 
 import moderngl
 import numpy as np
+import pygame
+
+from loopviz.analysis import BeatDetector
 
 VERTEX_SHADER = """
 #version 330 core
@@ -21,6 +25,8 @@ uniform float time;
 uniform float bass;
 uniform float treble;
 uniform float hue;
+uniform float punch;
+uniform float spin_dir;
 uniform vec2 scale;
 in vec2 uv;
 out vec4 color;
@@ -38,15 +44,15 @@ void main() {
 
     // Read the previous frame closer to the center so it zooms outward,
     // rotated, with more swirl near the middle and a travelling ripple
-    float zoom = 0.97 - bass * 0.04;
-    float spin = 0.01 + treble * 0.05 + 0.015 / (r + 0.2);
-    float ripple = 0.004 * sin(r * 30.0 - time * 4.0);
+    float zoom = 0.99 - bass * 0.015 - punch * 0.05;
+    float spin = (0.003 + treble * 0.012 + 0.005 / (r + 0.3)) * spin_dir;
+    float ripple = 0.003 * sin(r * 20.0 - time * 1.0);
     vec2 q = vec2(cos(a - spin), sin(a - spin)) * (r * zoom + ripple);
-    vec3 trail = texture(prev, q / scale + 0.5).rgb * 0.95;
+    vec3 trail = texture(prev, q / scale + 0.5).rgb * 0.97;
 
     float s = texture(wave, vec2(a / 6.2831853 + 0.5, 0.5)).r;
-    float radius = 0.22 + bass * 0.1 + s * 0.15;
-    float glow = exp(-abs(r - radius) * 150.0) * 0.6;
+    float radius = 0.22 + bass * 0.05 + s * 0.1;
+    float glow = exp(-abs(r - radius) * 150.0) * (0.5 + punch * 1.0);
 
     color = vec4(trail + hsv2rgb(hue, 0.8, 1.0) * glow, 1.0);
 }
@@ -65,17 +71,39 @@ void main() {
 WAVE_HALF = 256
 
 
+@dataclass(frozen=True)
+class Preset:
+    name: str
+    beat: bool = False
+
+
+PRESETS = [
+    Preset("tunnel"),
+    Preset("beat", beat=True),
+]
+
+
 class FeedbackGLRenderer:
-    """GPU frame feedback, ping-ponging between two float framebuffers."""
+    """GPU frame feedback, ping-ponging between two float framebuffers. P cycles presets."""
 
     gl = True
 
-    def __init__(self):
+    def __init__(self, preset: str):
+        self.preset_index = next(i for i, p in enumerate(PRESETS) if p.name == preset)
         self.ctx: moderngl.Context | None = None
         self.size: tuple[int, int] | None = None
         self.targets: list[tuple[moderngl.Texture, moderngl.Framebuffer]] = []
+        self.beats = BeatDetector(jump=0.08, cooldown=18)
+        self.beat_count = 0
+        self.punch = 0.0
+        self.spin_dir = 1.0
         self.hue = 0.0
         self.start = time.perf_counter()
+
+    def on_key(self, key: int) -> None:
+        if key == pygame.K_p:
+            self.preset_index = (self.preset_index + 1) % len(PRESETS)
+            print(f"Preset: {PRESETS[self.preset_index].name}")
 
     def _setup(self, ctx: moderngl.Context) -> None:
         self.ctx = ctx
@@ -102,6 +130,18 @@ class FeedbackGLRenderer:
             self.targets.append((tex, fbo))
         self.size = size
 
+    def _update_beat(self, bass: float, preset: Preset) -> None:
+        # Detector runs every frame so its history stays warm across preset switches
+        if self.beats(bass) and preset.beat:
+            self.punch = 1.0
+            self.hue += 0.08
+            self.beat_count += 1
+            if self.beat_count % 16 == 0:
+                self.spin_dir = -self.spin_dir
+        self.punch *= 0.9
+        if not preset.beat:
+            self.spin_dir = 1.0
+
     def render(self, ctx: moderngl.Context, size: tuple[int, int],
                samples: np.ndarray, levels: np.ndarray) -> None:
         if self.ctx is None:
@@ -109,10 +149,12 @@ class FeedbackGLRenderer:
         if size != self.size:
             self._resize(size)
 
+        preset = PRESETS[self.preset_index]
         n = len(levels)
         bass = float(levels[: n // 6].mean())
         treble = float(levels[-n // 3 :].mean())
-        self.hue = (self.hue + 0.002 + bass * 0.01) % 1.0
+        self._update_beat(bass, preset)
+        self.hue = (self.hue + 0.0005 + bass * 0.002) % 1.0
 
         # Mirrored so the ring closes without a seam
         half = samples[-WAVE_HALF:]
@@ -126,6 +168,8 @@ class FeedbackGLRenderer:
         self.warp["bass"].value = bass
         self.warp["treble"].value = treble
         self.warp["hue"].value = self.hue
+        self.warp["punch"].value = self.punch
+        self.warp["spin_dir"].value = self.spin_dir
         self.warp["scale"].value = (size[0] / min(size), size[1] / min(size))
         self.warp_quad.render(moderngl.TRIANGLE_STRIP)
 
