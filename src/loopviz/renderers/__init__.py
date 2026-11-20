@@ -1,3 +1,4 @@
+from loopviz.renderers.feedback import FeedbackRenderer
 from loopviz.renderers.spectrum import SpectrumRenderer
 from loopviz.renderers.waveform import WaveformRenderer
 
@@ -5,4 +6,5 @@ from loopviz.renderers.waveform import WaveformRenderer
 RENDERERS = {
     "spectrum": lambda args: SpectrumRenderer(),
     "waveform": lambda args: WaveformRenderer(persistence=args.persistence),
+    "feedback": lambda args: FeedbackRenderer(),
 }
