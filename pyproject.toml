@@ -24,3 +24,8 @@ build-backend = "uv_build"
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.6",
+]
