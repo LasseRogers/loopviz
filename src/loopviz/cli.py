@@ -6,6 +6,10 @@ from loopviz.renderers import RENDERERS
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="loopviz", description="Visualize system audio.")
     parser.add_argument("--mode", choices=RENDERERS, default="spectrum")
+    parser.add_argument(
+        "--backend", choices=("auto", "gpu", "cpu"), default="auto",
+        help="auto tries the GPU and falls back to CPU",
+    )
     parser.add_argument("--bands", type=int, default=32, help="number of frequency bands")
     parser.add_argument("--fps", type=int, default=60)
     parser.add_argument("--device", help="input device name, overrides auto-detection")

@@ -3,10 +3,12 @@ import pygame
 from loopviz.analysis import Smoother, Spectrum
 from loopviz.audio import Capture, find_input, list_inputs
 from loopviz.cli import parse_args
+from loopviz.display import open_display
 from loopviz.renderers import RENDERERS
 
 SAMPLE_RATE = 44100
 BLOCK_SIZE = 2048
+WINDOW_SIZE = (960, 480)
 
 
 def main() -> None:
@@ -18,7 +20,6 @@ def main() -> None:
 
     mic = find_input(args.device)
     print(f"Capturing from: {mic.name}")
-    print("Tab: next mode, F: fullscreen, Esc: quit")
 
     spectrum = Spectrum(SAMPLE_RATE, BLOCK_SIZE, args.bands)
     smoother = Smoother(args.bands)
@@ -27,7 +28,9 @@ def main() -> None:
     mode = modes.index(args.mode)
 
     pygame.init()
-    screen = pygame.display.set_mode((960, 480), pygame.RESIZABLE)
+    display = open_display(args.backend, WINDOW_SIZE)
+    print(f"Backend: {display.name}")
+    print("Tab: next mode, F: fullscreen, Esc: quit")
     pygame.display.set_caption(f"loopviz - {modes[mode]}")
     clock = pygame.time.Clock()
 
@@ -48,8 +51,7 @@ def main() -> None:
                         pygame.display.toggle_fullscreen()
 
                 samples = capture.latest
-                renderers[modes[mode]].draw(screen, samples, smoother(spectrum(samples)))
-                pygame.display.flip()
+                display.present(renderers[modes[mode]], samples, smoother(spectrum(samples)))
                 clock.tick(args.fps)
     finally:
         pygame.quit()
