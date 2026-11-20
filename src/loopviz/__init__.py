@@ -23,6 +23,8 @@ def main() -> None:
 
     pygame.init()
     display = open_display(args.backend, WINDOW_SIZE)
+    window = pygame.Window.from_display_module()
+    fullscreen = False
     print(f"Backend: {display.name}")
     print("Tab: next mode, F: fullscreen, Esc: quit")
 
@@ -49,7 +51,13 @@ def main() -> None:
                         mode = (mode + 1) % len(modes)
                         pygame.display.set_caption(f"loopviz - {modes[mode]}")
                     elif event.key == pygame.K_f:
-                        pygame.display.toggle_fullscreen()
+                        # Desktop fullscreen keeps native resolution, toggle_fullscreen()
+                        # switches the monitor to the window size
+                        fullscreen = not fullscreen
+                        if fullscreen:
+                            window.set_fullscreen(desktop=True)
+                        else:
+                            window.set_windowed()
 
                 samples = capture.latest
                 display.present(renderers[modes[mode]], samples, smoother(spectrum(samples)))
