@@ -6,14 +6,19 @@ GAIN = 2.0
 
 
 class WaveformRenderer:
-    """Time-domain oscilloscope trace."""
+    """Time-domain oscilloscope trace with optional phosphor-style fade."""
 
-    def __init__(self, span: int = 1024):
+    def __init__(self, span: int = 1024, persistence: float = 0.0):
         self.span = span
+        self.fade = round(persistence * 255)
 
     def draw(self, screen: pygame.Surface, samples: np.ndarray, levels: np.ndarray) -> None:
         width, height = screen.get_size()
-        screen.fill((0, 0, 0))
+        if self.fade:
+            # Multiply rounds down to true black, an alpha overlay leaves gray residue
+            screen.fill((self.fade,) * 3, special_flags=pygame.BLEND_MULT)
+        else:
+            screen.fill((0, 0, 0))
 
         # Start at the latest rising zero crossing so the trace holds still
         head = samples[: len(samples) - self.span]

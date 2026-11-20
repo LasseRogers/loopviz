@@ -21,7 +21,7 @@ def main() -> None:
 
     spectrum = Spectrum(SAMPLE_RATE, BLOCK_SIZE, args.bands)
     smoother = Smoother(args.bands)
-    renderer = RENDERERS[args.mode]()
+    renderer = RENDERERS[args.mode](args)
 
     pygame.init()
     screen = pygame.display.set_mode((960, 480), pygame.RESIZABLE)
