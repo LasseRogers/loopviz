@@ -2,11 +2,10 @@
 
 Real-time visualizer for system audio output, captured via loopback (PipeWire/PulseAudio monitor on Linux, BlackHole on macOS) and rendered with pygame or OpenGL.
 
-| Mode | |
-|---|---|
-| `spectrum` | log-spaced FFT bars |
-| `waveform` | triggered oscilloscope trace, optional phosphor fade |
-| `feedback` | MilkDrop-style frame feedback, shader warp on GPU, zoom/rotate on CPU |
+| `spectrum` | `waveform` | `feedback` |
+|---|---|---|
+| ![spectrum](docs/spectrum.gif) | ![waveform](docs/waveform.gif) | ![feedback](docs/feedback.gif) |
+| log-spaced FFT bars | triggered oscilloscope trace, optional phosphor fade | MilkDrop-style frame feedback, shader warp on GPU, zoom/rotate on CPU |
 
 ## Setup
 
