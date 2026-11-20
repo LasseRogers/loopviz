@@ -1,3 +1,5 @@
+from itertools import pairwise
+
 import numpy as np
 import pygame
 
@@ -45,6 +47,6 @@ class WaveformRenderer:
         # draw.lines takes one color, so split the trace to vary it along the line
         amplitude = np.abs(window)
         bounds = np.linspace(0, len(points) - 1, SEGMENTS + 1).astype(int)
-        for i, (a, b) in enumerate(zip(bounds[:-1], bounds[1:])):
+        for i, (a, b) in enumerate(pairwise(bounds)):
             t = amplitude[a : b + 1].max() if p.by_height else i / (SEGMENTS - 1)
             pygame.draw.lines(screen, mix(p.low, p.high, t), False, points[a : b + 1].tolist())
