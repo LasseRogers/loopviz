@@ -1,3 +1,8 @@
+import os
+
+# Must be set before pygame is first imported
+os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
+
 import pygame
 
 from loopviz.analysis import Smoother, Spectrum
