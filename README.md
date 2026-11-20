@@ -29,7 +29,7 @@ uv run loopviz --list-devices
 uv run loopviz --device "<name>"
 ```
 
-`Tab` next mode, `C` palette (spectrum), `F` fullscreen, `Esc` quit.
+`Tab` next mode, `C` palette (spectrum, waveform), `F` fullscreen, `Esc` quit.
 
 ## Notes
 

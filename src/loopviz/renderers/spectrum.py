@@ -1,27 +1,22 @@
 import numpy as np
 import pygame
 
-from loopviz.palettes import PALETTES, Palette, mix
+from loopviz.palettes import PaletteCycle, mix
 
 
 class SpectrumRenderer:
     """Log-spaced FFT bars. C cycles the palette."""
 
     def __init__(self, palette: str):
-        self.index = next(i for i, p in enumerate(PALETTES) if p.name == palette)
+        self.palettes = PaletteCycle(palette)
         self._prepared_for = None
-
-    @property
-    def palette(self) -> Palette:
-        return PALETTES[self.index]
 
     def on_key(self, key: int) -> None:
         if key == pygame.K_c:
-            self.index = (self.index + 1) % len(PALETTES)
-            print(f"Palette: {self.palette.name}")
+            print(f"Palette: {self.palettes.next().name}")
 
     def _prepare(self, bands: int, bar_width: float, height: int) -> None:
-        p = self.palette
+        p = self.palettes.current
         if p.by_height:
             # Draw the gradient once, then each bar shows the bottom slice of it
             column = pygame.Surface((1, height))
@@ -36,7 +31,7 @@ class SpectrumRenderer:
     def draw(self, screen: pygame.Surface, samples: np.ndarray, levels: np.ndarray) -> None:
         width, height = screen.get_size()
         bar_width = width / len(levels)
-        state = (self.index, len(levels), int(bar_width), height)
+        state = (self.palettes.index, len(levels), int(bar_width), height)
         if state != self._prepared_for:
             self._prepare(len(levels), bar_width, height)
             self._prepared_for = state

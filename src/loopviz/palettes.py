@@ -28,3 +28,16 @@ PALETTES = [
 
 def mix(a: Color, b: Color, t: float) -> Color:
     return tuple(round(x + (y - x) * t) for x, y in zip(a, b))
+
+
+class PaletteCycle:
+    def __init__(self, name: str):
+        self.index = next(i for i, p in enumerate(PALETTES) if p.name == name)
+
+    @property
+    def current(self) -> Palette:
+        return PALETTES[self.index]
+
+    def next(self) -> Palette:
+        self.index = (self.index + 1) % len(PALETTES)
+        return self.current
