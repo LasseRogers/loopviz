@@ -1,7 +1,7 @@
 [project]
 name = "loopviz"
 version = "0.1.0"
-description = "Add your description here"
+description = "Loopback audio visualizer"
 readme = "README.md"
 authors = [
     { name = "Lasse Rogers Nielsen", email = "lasr@kb.dk" }
