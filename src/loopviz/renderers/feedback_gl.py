@@ -21,7 +21,7 @@ uniform float time;
 uniform float bass;
 uniform float treble;
 uniform float hue;
-uniform float aspect;
+uniform vec2 scale;
 in vec2 uv;
 out vec4 color;
 
@@ -31,7 +31,8 @@ vec3 hsv2rgb(float h, float s, float v) {
 }
 
 void main() {
-    vec2 p = (uv - 0.5) * vec2(aspect, 1.0);
+    // Normalized to the shorter side so the ring fits in any orientation
+    vec2 p = (uv - 0.5) * scale;
     float r = length(p);
     float a = atan(p.y, p.x);
 
@@ -41,7 +42,7 @@ void main() {
     float spin = 0.01 + treble * 0.05 + 0.015 / (r + 0.2);
     float ripple = 0.004 * sin(r * 30.0 - time * 4.0);
     vec2 q = vec2(cos(a - spin), sin(a - spin)) * (r * zoom + ripple);
-    vec3 trail = texture(prev, q / vec2(aspect, 1.0) + 0.5).rgb * 0.95;
+    vec3 trail = texture(prev, q / scale + 0.5).rgb * 0.95;
 
     float s = texture(wave, vec2(a / 6.2831853 + 0.5, 0.5)).r;
     float radius = 0.22 + bass * 0.1 + s * 0.15;
@@ -125,7 +126,7 @@ class FeedbackGLRenderer:
         self.warp["bass"].value = bass
         self.warp["treble"].value = treble
         self.warp["hue"].value = self.hue
-        self.warp["aspect"].value = size[0] / size[1]
+        self.warp["scale"].value = (size[0] / min(size), size[1] / min(size))
         self.warp_quad.render(moderngl.TRIANGLE_STRIP)
 
         ctx.screen.use()
