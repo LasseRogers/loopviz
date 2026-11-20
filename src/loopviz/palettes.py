@@ -27,8 +27,11 @@ PALETTES = [
 
 
 def mix(a: Color, b: Color, t: float) -> Color:
-    return tuple(round(x + (y - x) * t) for x, y in zip(a, b))
-
+    return (
+        round(a[0] + (b[0] - a[0]) * t),
+        round(a[1] + (b[1] - a[1]) * t),
+        round(a[2] + (b[2] - a[2]) * t),
+    )
 
 class PaletteCycle:
     def __init__(self, name: str):

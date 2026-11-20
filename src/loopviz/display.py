@@ -63,7 +63,7 @@ class GpuDisplay:
             pygame.display.flip()
             return
 
-        if self.surface is None or self.surface.get_size() != size:
+        if self.surface is None or self.texture is None or self.surface.get_size() != size:
             self.surface = pygame.Surface(size)
             if self.texture:
                 self.texture.release()
