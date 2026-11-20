@@ -1,6 +1,6 @@
 import pygame
 
-from loopviz.analysis import Spectrum
+from loopviz.analysis import Smoother, Spectrum
 from loopviz.audio import Capture, find_input
 
 SAMPLE_RATE = 44100
@@ -15,6 +15,7 @@ def main() -> None:
     print(f"Capturing from: {mic.name}")
 
     spectrum = Spectrum(SAMPLE_RATE, BLOCK_SIZE, BANDS)
+    smoother = Smoother(BANDS)
 
     pygame.init()
     screen = pygame.display.set_mode((960, 480), pygame.RESIZABLE)
@@ -30,7 +31,7 @@ def main() -> None:
                     ):
                         return
 
-                levels = spectrum(capture.latest)
+                levels = smoother(spectrum(capture.latest))
 
                 width, height = screen.get_size()
                 bar_width = width / BANDS

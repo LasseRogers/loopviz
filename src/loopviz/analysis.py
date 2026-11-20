@@ -22,3 +22,17 @@ class Spectrum:
         levels = np.array([mag[s].mean() for s in self.slices])
         db = 20 * np.log10(levels + 1e-9)
         return np.clip((db - DB_FLOOR) / (DB_CEIL - DB_FLOOR), 0, 1)
+
+
+class Smoother:
+    """Rises fast and falls slowly so bars follow hits without flickering."""
+
+    def __init__(self, size: int, attack: float = 0.6, release: float = 0.08):
+        self.attack = attack
+        self.release = release
+        self.state = np.zeros(size)
+
+    def __call__(self, target: np.ndarray) -> np.ndarray:
+        rate = np.where(target > self.state, self.attack, self.release)
+        self.state += (target - self.state) * rate
+        return self.state
